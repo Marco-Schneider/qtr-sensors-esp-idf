@@ -115,7 +115,7 @@ void QTRSensors::emittersOff(QTREmitters emitters, bool wait)
     if ((_oddEmitterPin != QTRNoEmitterPin) &&
         (digitalRead(_oddEmitterPin) == HIGH))
     {
-      gpio_set_level(_oddEmitterPin, LOW);
+      gpio_set_level(static_cast<gpio_num_t>(_oddEmitterPin), LOW);
       pinChanged = true;
     }
   }
@@ -130,7 +130,7 @@ void QTRSensors::emittersOff(QTREmitters emitters, bool wait)
     if ((_evenEmitterPin != QTRNoEmitterPin) &&
         (digitalRead(_evenEmitterPin) == HIGH))
     {
-      gpio_set_level(_evenEmitterPin, LOW);
+      gpio_set_level(static_cast<gpio_num_t>(_evenEmitterPin), LOW);
       pinChanged = true;
     }
   }
@@ -220,11 +220,11 @@ uint16_t QTRSensors::emittersOnWithPin(uint8_t pin)
     // up the dimming level, we have to turn the emitters off and back on. This
     // means the turn-off delay will happen even if wait = false was passed to
     // emittersOn(). (Driver min is 1 ms.)
-    gpio_set_level(pin, LOW);
+    gpio_set_level(static_cast<gpio_num_t>(pin), LOW);
     delayMicroseconds(1200);
   }
 
-  gpio_set_level(pin, HIGH);
+  gpio_set_level(static_cast<gpio_num_t>(pin), HIGH);
   uint16_t emittersOnStart = micros();
 
   if (_dimmable && (_dimmingLevel > 0))
@@ -234,9 +234,9 @@ uint16_t QTRSensors::emittersOnWithPin(uint8_t pin)
     for (uint8_t i = 0; i < _dimmingLevel; i++)
     {
       delayMicroseconds(1);
-      gpio_set_level(pin, LOW);
+      gpio_set_level(static_cast<gpio_num_t>(pin), LOW);
       delayMicroseconds(1);
-      gpio_set_level(pin, HIGH);
+      gpio_set_level(static_cast<gpio_num_t>(pin), HIGH);
     }
 
     interrupts();
@@ -568,7 +568,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
         // make sensor line an output (drives low briefly, but doesn't matter)
         gpio_set_direction(static_cast<gpio_num_t>(_sensorPins[i]), GPIO_MODE_OUTPUT);
         // drive sensor line high
-        gpio_set_level(_sensorPins[i], HIGH);
+        gpio_set_level(static_cast<gpio_num_t>(_sensorPins[i]), HIGH);
       }
 
       delayMicroseconds(10); // charge lines for 10 us
