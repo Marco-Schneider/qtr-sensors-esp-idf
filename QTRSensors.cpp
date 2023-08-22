@@ -59,7 +59,7 @@ void QTRSensors::setEmitterPin(uint8_t emitterPin)
   releaseEmitterPins();
 
   _oddEmitterPin = emitterPin;
-  gpio_set_direction(_oddEmitterPin, GPIO_MODE_OUTPUT);
+  gpio_set_direction(static_cast<gpio_num_t>(_oddEmitterPin), GPIO_MODE_OUTPUT);
 
   _emitterPinCount = 1;
 }
@@ -70,8 +70,8 @@ void QTRSensors::setEmitterPins(uint8_t oddEmitterPin, uint8_t evenEmitterPin)
 
   _oddEmitterPin = oddEmitterPin;
   _evenEmitterPin = evenEmitterPin;
-  gpio_set_direction(_oddEmitterPin, GPIO_MODE_OUTPUT);
-  gpio_set_direction(_evenEmitterPin, GPIO_MODE_OUTPUT);
+  gpio_set_direction(static_cast<gpio_num_t>(_oddEmitterPin), GPIO_MODE_OUTPUT);
+  gpio_set_direction(static_cast<gpio_num_t>(_evenEmitterPin), GPIO_MODE_OUTPUT);
 
   _emitterPinCount = 2;
 }
@@ -80,13 +80,13 @@ void QTRSensors::releaseEmitterPins()
 {
   if (_oddEmitterPin != QTRNoEmitterPin)
   {
-    gpio_set_direction(_oddEmitterPin, GPIO_MODE_INPUT);
+    gpio_set_direction(static_cast<gpio_num_t>(_oddEmitterPin), GPIO_MODE_INPUT);
     _oddEmitterPin = QTRNoEmitterPin;
   }
 
   if (_evenEmitterPin != QTRNoEmitterPin)
   {
-    gpio_set_direction(_evenEmitterPin, GPIO_MODE_INPUT);
+    gpio_set_direction(static_cast<gpio_num_t>(_evenEmitterPin), GPIO_MODE_INPUT);
     _evenEmitterPin = QTRNoEmitterPin;
   }
 
@@ -566,7 +566,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
       {
         sensorValues[i] = _maxValue;
         // make sensor line an output (drives low briefly, but doesn't matter)
-        gpio_set_direction(_sensorPins[i], GPIO_MODE_OUTPUT);
+        gpio_set_direction(static_cast<gpio_num_t>(_sensorPins[i]), GPIO_MODE_OUTPUT);
         // drive sensor line high
         digitalWrite(_sensorPins[i], HIGH);
       }
@@ -587,7 +587,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
         for (uint8_t i = start; i < _sensorCount; i += step)
         {
           // make sensor line an input (should also ensure pull-up is disabled)
-          gpio_set_direction(_sensorPins[i], GPIO_MODE_INPUT);
+          gpio_set_direction(static_cast<gpio_num_t>(_sensorPins[i]), GPIO_MODE_INPUT);
         }
 
         interrupts(); // re-enable
