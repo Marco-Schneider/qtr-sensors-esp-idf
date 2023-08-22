@@ -1,5 +1,6 @@
 #include "QTRSensors.h"
 #include <stdlib.h>
+#include "driver/gpio.h"
 
 void QTRSensors::setTypeRC()
 {
@@ -58,7 +59,7 @@ void QTRSensors::setEmitterPin(uint8_t emitterPin)
   releaseEmitterPins();
 
   _oddEmitterPin = emitterPin;
-  pinMode(_oddEmitterPin, OUTPUT);
+  gpio_set_direction(_oddEmitterPin, GPIO_MODE_OUTPUT);
 
   _emitterPinCount = 1;
 }
@@ -69,8 +70,8 @@ void QTRSensors::setEmitterPins(uint8_t oddEmitterPin, uint8_t evenEmitterPin)
 
   _oddEmitterPin = oddEmitterPin;
   _evenEmitterPin = evenEmitterPin;
-  pinMode(_oddEmitterPin, OUTPUT);
-  pinMode(_evenEmitterPin, OUTPUT);
+  gpio_set_direction(_oddEmitterPin, GPIO_MODE_OUTPUT);
+  gpio_set_direction(_evenEmitterPin, GPIO_MODE_OUTPUT);
 
   _emitterPinCount = 2;
 }
@@ -79,13 +80,13 @@ void QTRSensors::releaseEmitterPins()
 {
   if (_oddEmitterPin != QTRNoEmitterPin)
   {
-    pinMode(_oddEmitterPin, INPUT);
+    gpio_set_direction(_oddEmitterPin, GPIO_MODE_INPUT);
     _oddEmitterPin = QTRNoEmitterPin;
   }
 
   if (_evenEmitterPin != QTRNoEmitterPin)
   {
-    pinMode(_evenEmitterPin, INPUT);
+    gpio_set_direction(_evenEmitterPin, GPIO_MODE_INPUT);
     _evenEmitterPin = QTRNoEmitterPin;
   }
 
@@ -565,7 +566,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
       {
         sensorValues[i] = _maxValue;
         // make sensor line an output (drives low briefly, but doesn't matter)
-        pinMode(_sensorPins[i], OUTPUT);
+        gpio_set_direction(_sensorPins[i], GPIO_MODE_OUTPUT);
         // drive sensor line high
         digitalWrite(_sensorPins[i], HIGH);
       }
@@ -586,7 +587,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
         for (uint8_t i = start; i < _sensorCount; i += step)
         {
           // make sensor line an input (should also ensure pull-up is disabled)
-          pinMode(_sensorPins[i], INPUT);
+          gpio_set_direction(_sensorPins[i], GPIO_MODE_INPUT);
         }
 
         interrupts(); // re-enable
