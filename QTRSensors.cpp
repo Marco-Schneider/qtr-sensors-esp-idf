@@ -113,7 +113,7 @@ void QTRSensors::emittersOff(QTREmitters emitters, bool wait)
   {
     // Check if pin is defined and only turn off if not already off
     if ((_oddEmitterPin != QTRNoEmitterPin) &&
-        (digitalRead(_oddEmitterPin) == HIGH))
+        (gpio_get_level(_oddEmitterPin) == HIGH))
     {
       gpio_set_level(static_cast<gpio_num_t>(_oddEmitterPin), LOW);
       pinChanged = true;
@@ -128,7 +128,7 @@ void QTRSensors::emittersOff(QTREmitters emitters, bool wait)
   {
     // Check if pin is defined and only turn off if not already off
     if ((_evenEmitterPin != QTRNoEmitterPin) &&
-        (digitalRead(_evenEmitterPin) == HIGH))
+        (gpio_get_level(_evenEmitterPin) == HIGH))
     {
       gpio_set_level(static_cast<gpio_num_t>(_evenEmitterPin), LOW);
       pinChanged = true;
@@ -166,7 +166,7 @@ void QTRSensors::emittersOn(QTREmitters emitters, bool wait)
     // we might be changing the dimming level (emittersOnWithPin() should take
     // care of this)
     if ((_oddEmitterPin != QTRNoEmitterPin) &&
-        ( _dimmable || (digitalRead(_oddEmitterPin) == LOW)))
+        ( _dimmable || (gpio_get_level(_oddEmitterPin) == LOW)))
     {
       emittersOnStart = emittersOnWithPin(_oddEmitterPin);
       pinChanged = true;
@@ -184,7 +184,7 @@ void QTRSensors::emittersOn(QTREmitters emitters, bool wait)
     // we might be changing the dimming level (emittersOnWithPin() should take
     // care of this)
     if ((_evenEmitterPin != QTRNoEmitterPin) &&
-        (_dimmable || (digitalRead(_evenEmitterPin) == LOW)))
+        (_dimmable || (gpio_get_level(_evenEmitterPin) == LOW)))
     {
       emittersOnStart = emittersOnWithPin(_evenEmitterPin);
       pinChanged = true;
@@ -214,7 +214,7 @@ void QTRSensors::emittersOn(QTREmitters emitters, bool wait)
 // returns time when pin was first set high (used by emittersSelect())
 uint16_t QTRSensors::emittersOnWithPin(uint8_t pin)
 {
-  if (_dimmable && (digitalRead(pin) == HIGH))
+  if (_dimmable && (gpio_get_level(pin) == HIGH))
   {
     // We are turning on dimmable emitters that are already on. To avoid messing
     // up the dimming level, we have to turn the emitters off and back on. This
@@ -601,7 +601,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
           time = micros() - startTime;
           for (uint8_t i = start; i < _sensorCount; i += step)
           {
-            if ((digitalRead(_sensorPins[i]) == LOW) && (time < sensorValues[i]))
+            if ((gpio_get_level(_sensorPins[i]) == LOW) && (time < sensorValues[i]))
             {
               // record the first time the line reads low
               sensorValues[i] = time;
