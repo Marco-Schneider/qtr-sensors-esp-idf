@@ -176,7 +176,7 @@ void QTRSensors::emittersOff(QTREmitters emitters, bool wait)
 void QTRSensors::emittersOn(QTREmitters emitters, bool wait)
 {
   bool pinChanged = false;
-  uint16_t emittersOnStart;
+  uint16_t emittersOnStart = micros();
 
   // Use odd emitter pin in these cases:
   // - 1 emitter pin, emitters = all

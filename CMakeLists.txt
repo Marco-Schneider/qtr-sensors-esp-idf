@@ -1,3 +1,3 @@
-idf_component_register(SRCS "QTRSensors.c"
+idf_component_register(SRCS "QTRSensors.cpp"
                     INCLUDE_DIRS "include"
                     REQUIRES driver esp_timer)
