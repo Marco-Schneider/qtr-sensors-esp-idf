@@ -1,5 +1,5 @@
 #include "QTRSensors.h"
-#include <Arduino.h>
+#include <stdlib.h>
 
 void QTRSensors::setTypeRC()
 {
@@ -10,7 +10,7 @@ void QTRSensors::setTypeRC()
 void QTRSensors::setTypeAnalog()
 {
   _type = QTRType::Analog;
-  _maxValue = 1023; // Arduino analogRead() returns a 10-bit value by default
+  _maxValue = 4095; // ESP32 adc1_get_raw() and adc2_get_raw() return a 12-bit value by default
 }
 
 void QTRSensors::setSensorPins(const uint8_t * pins, uint8_t sensorCount)
