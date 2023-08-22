@@ -4,6 +4,9 @@
 
 #include <stdint.h>
 
+#define HIGH 1
+#define LOW 0
+
 /// \brief Emitter behavior when taking readings.
 ///
 /// Note that emitter control will only work if you specify a valid emitter pin
