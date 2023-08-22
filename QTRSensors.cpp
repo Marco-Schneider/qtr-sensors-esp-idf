@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "driver/gpio.h"
 #include "esp_timer.h"
+#include "freertos/portmacro.h"
 
 unsigned long micros()
 {
@@ -252,7 +253,7 @@ uint16_t QTRSensors::emittersOnWithPin(uint8_t pin)
 
   if (_dimmable && (_dimmingLevel > 0))
   {
-    noInterrupts();
+    portDISABLE_INTERRUPTS();
 
     for (uint8_t i = 0; i < _dimmingLevel; i++)
     {
@@ -262,7 +263,7 @@ uint16_t QTRSensors::emittersOnWithPin(uint8_t pin)
       gpio_set_level(static_cast<gpio_num_t>(pin), HIGH);
     }
 
-    interrupts();
+    portENABLE_INTERRUPTS();
   }
 
   return emittersOnStart;
@@ -599,7 +600,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
       {
         // disable interrupts so we can switch all the pins as close to the same
         // time as possible
-        noInterrupts();
+        portDISABLE_INTERRUPTS();
 
         // record start time before the first sensor is switched to input
         // (similarly, time is checked before the first sensor is read in the
@@ -613,13 +614,13 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
           gpio_set_direction(static_cast<gpio_num_t>(_sensorPins[i]), GPIO_MODE_INPUT);
         }
 
-        interrupts(); // re-enable
+        portENABLE_INTERRUPTS(); // re-enable
 
         while (time < _maxValue)
         {
           // disable interrupts so we can read all the pins as close to the same
           // time as possible
-          noInterrupts();
+          portDISABLE_INTERRUPTS();
 
           time = micros() - startTime;
           for (uint8_t i = start; i < _sensorCount; i += step)
@@ -631,7 +632,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
             }
           }
 
-          interrupts(); // re-enable
+          portENABLE_INTERRUPTS(); // re-enable
         }
       }
       return;
