@@ -1,6 +1,29 @@
 #include "QTRSensors.h"
 #include <stdlib.h>
 #include "driver/gpio.h"
+#include "esp_timer.h"
+
+unsigned long micros()
+{
+  return (unsigned long) (esp_timer_get_time());
+}
+
+#define NOP() asm volatile ("nop")
+void delayMicroseconds(uint32_t us)
+{
+  uint64_t m = (uint64_t)esp_timer_get_time();
+  if(us){
+    uint64_t e = (m + us);
+    if(m > e) { //overflow
+      while((uint64_t)esp_timer_get_time() > e) {
+        NOP();
+      }
+    }
+    while((uint64_t)esp_timer_get_time() < e) {
+      NOP();
+    }
+  }
+}
 
 void QTRSensors::setTypeRC()
 {
@@ -625,7 +648,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
         for (uint8_t i = start; i < _sensorCount; i += step)
         {
           // add the conversion result
-          sensorValues[i] += analogRead(_sensorPins[i]);
+          // sensorValues[i] += analogRead(_sensorPins[i]);
         }
       }
 
