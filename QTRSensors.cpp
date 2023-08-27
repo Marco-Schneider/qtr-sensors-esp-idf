@@ -1,9 +1,10 @@
 #include "QTRSensors.h"
 #include <stdlib.h>
-#include "driver/gpio.h"
-#include "driver/adc.h"
 #include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "freertos/portmacro.h"
+#include "rom/ets_sys.h"
 
 /* 
   Needed functions to emulate built-in Arduino functionalities,
@@ -33,36 +34,6 @@ void delayMicroseconds(uint32_t us)
 }
 
 /* The following is required to replace the analogRead() function as implemented here */
-typedef struct {
-  gpio_num_t gpioPin;
-  adc1_channel_t adc1Channel;
-  adc2_channel_t adc2Channel;
-} PinToChannelMapping;
-
-const PinToChannelMapping pinToChannelMap[] = {
-  /*ADC1*/
-  {GPIO_NUM_36, ADC1_CHANNEL_0, ADC2_CHANNEL_MAX,},  
-  {GPIO_NUM_37, ADC1_CHANNEL_1, ADC2_CHANNEL_MAX,},
-  {GPIO_NUM_38, ADC1_CHANNEL_2, ADC2_CHANNEL_MAX,},
-  {GPIO_NUM_39, ADC1_CHANNEL_3, ADC2_CHANNEL_MAX,},
-  {GPIO_NUM_32, ADC1_CHANNEL_4, ADC2_CHANNEL_MAX,},
-  {GPIO_NUM_33, ADC1_CHANNEL_5, ADC2_CHANNEL_MAX,},
-  {GPIO_NUM_34, ADC1_CHANNEL_6, ADC2_CHANNEL_MAX,},
-  {GPIO_NUM_35, ADC1_CHANNEL_7, ADC2_CHANNEL_MAX,},
-
-  /*ADC2*/
-  {GPIO_NUM_4, ADC1_CHANNEL_MAX, ADC2_CHANNEL_0},  
-  {GPIO_NUM_0, ADC1_CHANNEL_MAX, ADC2_CHANNEL_1}, 
-  {GPIO_NUM_2, ADC1_CHANNEL_MAX, ADC2_CHANNEL_2}, 
-  {GPIO_NUM_15, ADC1_CHANNEL_MAX, ADC2_CHANNEL_3}, 
-  {GPIO_NUM_13, ADC1_CHANNEL_MAX, ADC2_CHANNEL_4}, 
-  {GPIO_NUM_12, ADC1_CHANNEL_MAX, ADC2_CHANNEL_5}, 
-  {GPIO_NUM_14, ADC1_CHANNEL_MAX, ADC2_CHANNEL_6}, 
-  {GPIO_NUM_27, ADC1_CHANNEL_MAX, ADC2_CHANNEL_7}, 
-  {GPIO_NUM_25, ADC1_CHANNEL_MAX, ADC2_CHANNEL_8}, 
-  {GPIO_NUM_26, ADC1_CHANNEL_MAX, ADC2_CHANNEL_9}, 
-};
-
 adc1_channel_t findADC1Channel(gpio_num_t pin) {
   for (const PinToChannelMapping &mapping : pinToChannelMap) {
     if (mapping.gpioPin == pin) {
@@ -220,11 +191,12 @@ void QTRSensors::emittersOff(QTREmitters emitters, bool wait)
     if (_dimmable)
     {
       // driver min is 1 ms
-      delayMicroseconds(1200);
+      // vTaskDelay(1000 / portTICK_PERIOD_MS);
+      ets_delay_us(1200);
     }
     else
     {
-      delayMicroseconds(200);
+      ets_delay_us(200);
     }
   }
 }
@@ -280,12 +252,12 @@ void QTRSensors::emittersOn(QTREmitters emitters, bool wait)
       // already passed while we set the dimming level.
       while ((uint16_t)(micros() - emittersOnStart) < 300)
       {
-        delayMicroseconds(10);
+        ets_delay_us(10);
       }
     }
     else
     {
-      delayMicroseconds(200);
+      ets_delay_us(200);
     }
   }
 }
@@ -301,7 +273,7 @@ uint16_t QTRSensors::emittersOnWithPin(uint8_t pin)
     // means the turn-off delay will happen even if wait = false was passed to
     // emittersOn(). (Driver min is 1 ms.)
     gpio_set_level(static_cast<gpio_num_t>(pin), LOW);
-    delayMicroseconds(1200);
+    ets_delay_us(500);
   }
 
   gpio_set_level(static_cast<gpio_num_t>(pin), HIGH);
@@ -313,9 +285,9 @@ uint16_t QTRSensors::emittersOnWithPin(uint8_t pin)
 
     for (uint8_t i = 0; i < _dimmingLevel; i++)
     {
-      delayMicroseconds(1);
+      ets_delay_us(1);
       gpio_set_level(static_cast<gpio_num_t>(pin), LOW);
-      delayMicroseconds(1);
+      ets_delay_us(1);
       gpio_set_level(static_cast<gpio_num_t>(pin), HIGH);
     }
 
@@ -366,7 +338,7 @@ void QTRSensors::emittersSelect(QTREmitters emitters)
     // the on-emitters to turn on.
     while ((uint16_t)(micros() - turnOffStart) < 1200)
     {
-      delayMicroseconds(10);
+      ets_delay_us(10);
     }
   }
 }
@@ -651,7 +623,7 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
         gpio_set_level(static_cast<gpio_num_t>(_sensorPins[i]), HIGH);
       }
 
-      delayMicroseconds(10); // charge lines for 10 us
+      ets_delay_us(10); // charge lines for 10 us
 
       {
         // disable interrupts so we can switch all the pins as close to the same
@@ -706,11 +678,14 @@ void QTRSensors::readPrivate(uint16_t * sensorValues, uint8_t start, uint8_t ste
         {
           adc1_channel_t adc1Channel = findADC1Channel(static_cast<gpio_num_t>(_sensorPins[i]));
           adc2_channel_t adc2Channel = findADC2Channel(static_cast<gpio_num_t>(_sensorPins[i]));
+          int readRaw2;
+          esp_err_t r;
           if(adc1Channel < ADC1_CHANNEL_MAX) {
             sensorValues[i] += adc1_get_raw(adc1Channel);
           }
           else {
-            sensorValues[i] += adc2_get_raw(adc2Channel, ADC_WIDTH_BIT_12, nullptr);
+            r = adc2_get_raw(adc2Channel, ADC_WIDTH_BIT_12, &readRaw2);;
+            sensorValues[i] += readRaw2;
           }
         }
       }
