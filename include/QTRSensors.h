@@ -3,9 +3,43 @@
 #pragma once
 
 #include <stdint.h>
+#include "driver/gpio.h"
+#include "driver/adc.h"
 
 #define HIGH 1
 #define LOW 0
+
+typedef struct {
+  gpio_num_t gpioPin;
+  adc1_channel_t adc1Channel;
+  adc2_channel_t adc2Channel;
+} PinToChannelMapping;
+
+const PinToChannelMapping pinToChannelMap[] = {
+  /*ADC1*/
+  {GPIO_NUM_36, ADC1_CHANNEL_0, ADC2_CHANNEL_MAX,},  
+  {GPIO_NUM_37, ADC1_CHANNEL_1, ADC2_CHANNEL_MAX,},
+  {GPIO_NUM_38, ADC1_CHANNEL_2, ADC2_CHANNEL_MAX,},
+  {GPIO_NUM_39, ADC1_CHANNEL_3, ADC2_CHANNEL_MAX,},
+  {GPIO_NUM_32, ADC1_CHANNEL_4, ADC2_CHANNEL_MAX,},
+  {GPIO_NUM_33, ADC1_CHANNEL_5, ADC2_CHANNEL_MAX,},
+  {GPIO_NUM_34, ADC1_CHANNEL_6, ADC2_CHANNEL_MAX,},
+  {GPIO_NUM_35, ADC1_CHANNEL_7, ADC2_CHANNEL_MAX,},
+
+  /*ADC2*/
+  {GPIO_NUM_4, ADC1_CHANNEL_MAX, ADC2_CHANNEL_0},  
+  {GPIO_NUM_0, ADC1_CHANNEL_MAX, ADC2_CHANNEL_1}, 
+  {GPIO_NUM_2, ADC1_CHANNEL_MAX, ADC2_CHANNEL_2}, 
+  {GPIO_NUM_15, ADC1_CHANNEL_MAX, ADC2_CHANNEL_3}, 
+  {GPIO_NUM_13, ADC1_CHANNEL_MAX, ADC2_CHANNEL_4}, 
+  {GPIO_NUM_12, ADC1_CHANNEL_MAX, ADC2_CHANNEL_5}, 
+  {GPIO_NUM_14, ADC1_CHANNEL_MAX, ADC2_CHANNEL_6}, 
+  {GPIO_NUM_27, ADC1_CHANNEL_MAX, ADC2_CHANNEL_7}, 
+  {GPIO_NUM_25, ADC1_CHANNEL_MAX, ADC2_CHANNEL_8}, 
+  {GPIO_NUM_26, ADC1_CHANNEL_MAX, ADC2_CHANNEL_9}, 
+};
+
+adc2_channel_t findADC2Channel(gpio_num_t pin);
 
 /// \brief Emitter behavior when taking readings.
 ///
